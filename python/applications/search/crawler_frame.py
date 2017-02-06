@@ -5,6 +5,7 @@ from spacetime_local.declarations import Producer, GetterSetter, Getter
 from lxml import html,etree
 import re, os
 from time import time
+import requests
 
 try:
     # For python 2
@@ -12,7 +13,6 @@ try:
 except ImportError:
     # For python 3
     from urllib.parse import urlparse, parse_qs
-
 
 logger = logging.getLogger(__name__)
 LOG_HEADER = "[CRAWLER]"
@@ -57,6 +57,8 @@ class CrawlerFrame(IApplication):
             self.done = True
 
     def shutdown(self):
+        end_time = time()
+        average_dl = (time() - self.starttime) / url_count
         print "downloaded ", url_count, " in ", time() - self.starttime, " seconds."
         pass
 
@@ -101,8 +103,14 @@ def is_valid(url):
 
     This is a great place to filter out crawler traps.
     '''
+    r = requests.get(url)
+    if(r.status_code != requests.codes.ok)
+        #if that status code for the request is not 200 it is not considered valid
+        return False
     parsed = urlparse(url)
-    if parsed.scheme not in set(["http", "https"]):
+    elif parsed.scheme not in set(["http", "https"]):
+        return False
+    elif "calendar" in parsed.hostname
         return False
     try:
         return ".ics.uci.edu" in parsed.hostname \
