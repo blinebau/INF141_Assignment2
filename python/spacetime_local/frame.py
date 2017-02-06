@@ -173,7 +173,6 @@ class frame(IFrame):
         self.__name2type = dict([(tp.__realname__, tp) for tp in all_types])
         self.object_store.add_types(all_types)
         for host in self.__host_typemap:
-            self.logger.info(host)
             self.__host_to_push_groupkey[host] = set([self.object_store.get_group_key(tp)
                                                       for tp in self.__host_typemap[host][Modes.GetterSetter].union(
                                                                 self.__host_typemap[host][Modes.Setter]).union(
