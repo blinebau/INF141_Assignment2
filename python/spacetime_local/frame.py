@@ -1,4 +1,4 @@
-﻿'''
+'''
 Created on Apr 19, 2016
 
 @author: Rohan Achar
@@ -173,6 +173,7 @@ class frame(IFrame):
         self.__name2type = dict([(tp.__realname__, tp) for tp in all_types])
         self.object_store.add_types(all_types)
         for host in self.__host_typemap:
+            self.logger.info(host)
             self.__host_to_push_groupkey[host] = set([self.object_store.get_group_key(tp)
                                                       for tp in self.__host_typemap[host][Modes.GetterSetter].union(
                                                                 self.__host_typemap[host][Modes.Setter]).union(
@@ -288,11 +289,10 @@ class frame(IFrame):
                         self.logger.error("Could not import cProfile (not supported in Jython).")
                         self.__profile = None
                         self.__profiling = None
-
                 self.__pull()
                 self.__app.initialize()
                 self.__push()
-                while not self.__app.done:
+                while not self.__app.done:                    
                     st_time = time.time()
                     self.__pull()
                     self.__app.update()
@@ -306,7 +306,6 @@ class frame(IFrame):
                         time.sleep(float(self.__time_step - timespent))
                     else:
                         self.logger.info("loop exceeded maximum time: %s ms", timespent)
-
                     # Writes down total time spent in spacetime methods
                     if self.__instrumented:
                         si.record_instruments(timespent, self)
