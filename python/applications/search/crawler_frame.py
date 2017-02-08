@@ -1,8 +1,9 @@
 import logging
+import lxml
 from datamodel.search.datamodel import ProducedLink, OneUnProcessedGroup, robot_manager
 from spacetime_local.IApplication import IApplication
 from spacetime_local.declarations import Producer, GetterSetter, Getter
-#from lxml import html,etree
+from lxml import html,etree
 import re, os
 from time import time
 import requests
@@ -19,7 +20,7 @@ LOG_HEADER = "[CRAWLER]"
 url_count = (set() 
     if not os.path.exists("successful_urls.txt") else 
     set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
-MAX_LINKS_TO_DOWNLOAD = 3000
+MAX_LINKS_TO_DOWNLOAD = 100
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
@@ -28,10 +29,10 @@ class CrawlerFrame(IApplication):
     def __init__(self, frame):
         self.starttime = time()
         # Set app_id <student_id1>_<student_id2>...
-        self.app_id = "49831189"
+        self.app_id = "49831189_94909076_72333079"
         # Set user agent string to IR W17 UnderGrad <student_id1>, <student_id2> ...
         # If Graduate studetn, change the UnderGrad part to Grad.
-        self.UserAgentString = "IR W17 UnderGrad 49831189"
+        self.UserAgentString = "IR W17 UnderGrad 49831189, 94909076, 72333079"
 		
         self.frame = frame
         assert(self.UserAgentString != None)
@@ -41,7 +42,7 @@ class CrawlerFrame(IApplication):
 
     def initialize(self):
         self.count = 0
-        l = ProducedLink("http://www.ics.uci.edu", self.UserAgentString)
+        l = ProducedLink("http://www.ics.uci.edu/faculty/area/", self.UserAgentString)
         print l.full_url
         self.frame.add(l)
 
@@ -60,8 +61,7 @@ class CrawlerFrame(IApplication):
             self.done = True
 
     def shutdown(self):
-        end_time = time()
-        average_dl = (time() - self.starttime) / url_count
+        print "Average time: ", (time() - self.starttime) / len(url_count)
         print "downloaded ", url_count, " in ", time() - self.starttime, " seconds."
         pass
 
@@ -92,12 +92,18 @@ def extract_next_links(rawDatas):
 
     Suggested library: lxml
     '''
-    time.sleep(3)
-    for pages in rawDatas:
-        html = pages[1]
-        html.make_links_absolute(pages[0])
-	links = lxml.html.interlinks(html)
-	outputLinks.extend(list(l[2] for l in links))
+
+    for resp in rawDatas:
+        if not urlparse(resp.url).query:
+            resp.bad_url = true
+        html = lxml.html.fromstring(resp.content)
+        html.make_links_absolute(resp.url)
+    links = lxml.html.iterlinks(html)
+    for l in links:
+        if not urlparse(l[2]).query:
+            
+    outputLinks.extend(list(l[2] for l in links))
+    
     return outputLinks
 
 def is_valid(url):
@@ -107,14 +113,13 @@ def is_valid(url):
 
     This is a great place to filter out crawler traps.
     '''
-    r = requests.get(url)
-    if(r.status_code != requests.codes.ok)
-        #if that status code for the request is not 200 it is not considered valid
-        return False
     parsed = urlparse(url)
-    elif parsed.scheme not in set(["http", "https"]):
+    
+    if parsed.scheme not in set(["http", "https"]):
         return False
-    elif "calendar" in parsed.hostname
+    elif "calendar" in parsed.hostname:
+        return False
+    elif requests.get(url).status_code != requests.codes.ok: 
         return False
     try:
         return ".ics.uci.edu" in parsed.hostname \
