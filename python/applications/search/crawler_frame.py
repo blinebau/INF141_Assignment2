@@ -29,10 +29,17 @@ class CrawlerFrame(IApplication):
     def __init__(self, frame):
         self.starttime = time()
         # Set app_id <student_id1>_<student_id2>...
+<<<<<<< HEAD
         self.app_id = "49831189_94909076_72333079"
         # Set user agent string to IR W17 UnderGrad <student_id1>, <student_id2> ...
         # If Graduate studetn, change the UnderGrad part to Grad.
         self.UserAgentString = "IR W17 UnderGrad 49831189, 94909076, 72333079"
+=======
+        self.app_id = ""
+        # Set user agent string to IR W17 UnderGrad <student_id1>, <student_id2> ...
+        # If Graduate studetn, change the UnderGrad part to Grad.
+        self.UserAgentString = None
+>>>>>>> 32813163c6759c5a3dc274b5c0976568bada6cd0
 		
         self.frame = frame
         assert(self.UserAgentString != None)
@@ -61,15 +68,21 @@ class CrawlerFrame(IApplication):
             self.done = True
 
     def shutdown(self):
+<<<<<<< HEAD
         print "Average time: ", (time() - self.starttime) / len(url_count)
         print "downloaded ", url_count, " in ", time() - self.starttime, " seconds."
+=======
+        print "downloaded ", len(url_count), " in ", time() - self.starttime, " seconds."
+>>>>>>> 32813163c6759c5a3dc274b5c0976568bada6cd0
         pass
 
 def save_count(urls):
     global url_count
-    url_count.update(set(urls))
-    with open("successful_urls.txt", "a") as surls:
-        surls.write(("\n".join(urls) + "\n").encode("utf-8"))
+    urls = set(urls).difference(url_count)
+    url_count.update(urls)
+    if len(urls):
+        with open("successful_urls.txt", "a") as surls:
+            surls.write(("\n".join(urls) + "\n").encode("utf-8"))
 
 def process_url_group(group, useragentstr):
     rawDatas, successfull_urls = group.download(useragentstr, is_valid)
