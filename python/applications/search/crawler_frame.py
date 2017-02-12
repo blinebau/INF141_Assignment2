@@ -99,12 +99,8 @@ def extract_next_links(rawDatas):
             resp.bad_url = true
         html = lxml.html.fromstring(resp.content)
         html.make_links_absolute(resp.url)
-    links = lxml.html.iterlinks(html)
-    for l in links:
-        if not urlparse(l[2]).query:
-            
-    outputLinks.extend(list(l[2] for l in links))
-    
+        links = list(lxml.html.iterlinks(html))
+        outputLinks.extend(list(l[2] for l in links))
     return outputLinks
 
 def is_valid(url):
@@ -121,6 +117,8 @@ def is_valid(url):
     elif "calendar" in parsed.hostname:
         return False
     elif requests.get(url).status_code != requests.codes.ok: 
+        return False
+    elif not parsed.query:
         return False
     try:
         return ".ics.uci.edu" in parsed.hostname \
