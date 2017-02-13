@@ -20,7 +20,7 @@ LOG_HEADER = "[CRAWLER]"
 url_count = (set() 
     if not os.path.exists("successful_urls.txt") else 
     set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
-MAX_LINKS_TO_DOWNLOAD = 100
+MAX_LINKS_TO_DOWNLOAD = 3000 
 
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
