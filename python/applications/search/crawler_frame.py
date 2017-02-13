@@ -94,8 +94,9 @@ def extract_next_links(rawDatas):
     Suggested library: lxml
     '''
 
-    for resp in rawDatas:
-        if not urlparse(resp.url).query:
+    for resp in rawDatas
+        parsed = urlparse(resp.url)
+        if not parsed.query:
             resp.bad_url = true
         html = lxml.html.fromstring(resp.content)
         html.make_links_absolute(resp.url)
@@ -126,7 +127,7 @@ def is_valid(url):
             + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf" \
             + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
             + "|thmx|mso|arff|rtf|jar|csv"\
-            + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            + "|rm|smil|wmv|swf|wma|zip|rar|gz|h5)$", parsed.path.lower())
 
     except TypeError:
         print ("TypeError for ", parsed)
