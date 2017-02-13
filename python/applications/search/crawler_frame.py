@@ -94,7 +94,7 @@ def extract_next_links(rawDatas):
     Suggested library: lxml
     '''
 
-    for resp in rawDatas
+    for resp in rawDatas:
         parsed = urlparse(resp.url)
         if not parsed.query:
             resp.bad_url = true
