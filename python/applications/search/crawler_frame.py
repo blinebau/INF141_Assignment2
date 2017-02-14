@@ -1,9 +1,12 @@
 import logging
 import lxml
+import bs4
+from bs4 import BeautifulSoup
 from datamodel.search.datamodel import ProducedLink, OneUnProcessedGroup, robot_manager
 from spacetime_local.IApplication import IApplication
 from spacetime_local.declarations import Producer, GetterSetter, Getter
 from lxml import html,etree
+from lxml.html.soupparser import fromstring
 import re, os
 from time import time
 import requests
@@ -20,12 +23,12 @@ LOG_HEADER = "[CRAWLER]"
 url_count = (set() 
     if not os.path.exists("successful_urls.txt") else 
     set([line.strip() for line in open("successful_urls.txt").readlines() if line.strip() != ""]))
-MAX_LINKS_TO_DOWNLOAD = 3000 
-
+MAX_LINKS_TO_DOWNLOAD = 100 
+'''
 link_counter = 0
 subdomain_track = dict()
 outlink_track = ('', 0)
-
+'''
 @Producer(ProducedLink)
 @GetterSetter(OneUnProcessedGroup)
 class CrawlerFrame(IApplication):
@@ -65,19 +68,20 @@ class CrawlerFrame(IApplication):
             self.done = True
 
     def shutdown(self):
-        f = open('crawler_stats.txt', 'w')
-        f.write('Here are a list of the subdomains and how often they appear.')
-        for i in sorted(subdomain_track):
-            try:
-                f.write('\nThe url is ' + str(i) + ' which appears : '+ str(subdomain_track[i]) + " times.")
-            except UnicodeError:
-                link_counter += 1
-                print("Unicode Error for this url")
+        #global link_counter
+        #f = open('crawler_stats.txt', 'w')
+        #f.write('Here are a list of the subdomains and how often they appear.')
+        #for i in sorted(subdomain_track):
+         #   try:
+          #      f.write('\nThe url is ' + str(i) + ' which appears : '+ str(subdomain_track[i]) + " times.")
+           # except UnicodeError:
+            #    link_counter += 1
+             #   print("Unicode Error for this url")
                 
         
-        f.write("\nHere is the amount of invalid links that were found: " +str(link_counter))
-        f.write("\nThe page with the most outlinks is " + outlink_track[0]+ " with " + str(outlink_track[1]) + " links.")
-        f.close()
+       # f.write("\nHere is the amount of invalid links that were found: " +str(link_counter))
+        #f.write("\nThe page with the most outlinks is " + outlink_track[0]+ " with " + str(outlink_track[1]) + " links.")
+        #f.close()
         print "downloaded ", len(url_count), " in ", time() - self.starttime, " seconds."
         pass
 
@@ -110,26 +114,30 @@ def extract_next_links(rawDatas):
 
     Suggested library: lxml
     '''
-    
+    #global subdomain_track
+    #global outlink_track
     
 
     for resp in rawDatas:
         url = urlparse(resp.url)
-        
-        if url not in subdomain_track:
+        '''
+        if url.netloc not in subdomain_track:
             subdomain_track[url.netloc] = 1
         else:
             subdomain_track[url.netloc] += 1
-        
         if not url.query:
             resp.bad_url = true
-        html = lxml.html.fromstring(resp.content)
-        html.make_links_absolute(resp.url)
-        links = list(lxml.html.iterlinks(html))
-        if len(links) > len(outlinks_track):
-            outlinks_track = (url, len(links))
-    
-        outputLinks.extend(list(l[2] for l in links))
+        '''
+        html = BeautifulSoup(resp.content, "lxml")
+        html_links = html.find_all('a')
+        for link in html_links:
+            if link.get('href') is None:
+                continue
+            outputLinks.append(link.get('href'))
+            '''
+            if len(html_links) > len(outlink_track):
+                outlink_track = (resp.url, len(html_links))
+            '''
     return outputLinks
 
 def is_valid(url):
@@ -139,19 +147,20 @@ def is_valid(url):
 
     This is a great place to filter out crawler traps.
     '''
+    #global link_counter
     parsed = urlparse(url)
     
     if parsed.scheme not in set(["http", "https"]):
-        link_counter +=1
+        #link_counter +=1
         return False
     elif "calendar" in parsed.hostname:
-        link_counter +=1
+        #link_counter +=1
         return False
     elif requests.get(url).status_code != requests.codes.ok:
-        link_counter +=1
+        #link_counter +=1
         return False
     elif not parsed.query:
-        link_counter +=1
+        #link_counter +=1
         return False
     try:
         return ".ics.uci.edu" in parsed.hostname \
